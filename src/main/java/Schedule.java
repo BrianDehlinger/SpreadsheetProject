@@ -1,8 +1,27 @@
 public interface Schedule {
-    //TODO implement displaySchedule. This method will display all of the time slots followed by all of the people working at the time and who is available at the time.
-    //TODO implement displayPeopleAvailable method that will display the people's names who are available for a given time and date.
-    //TODO displayPeopleWorking method that will display the people's names who are working for a time and date.
-    //TODO getMinAndMax() method that displays a times min and max number of people who need to/can work a time.
+    /**
+     * display all of the time slots followed by all of the people working at the time and who is available at the time.
+     */
+    void displaySchedule();
+
+    /**
+     * display the people's names who are available for a given time and date
+     * @param timeDate
+     */
+    void displayPeopleAvailable(String timeDate);
+
+    /**
+     * display the people's names who are working for a time and date.
+     * @param timeDate
+     */
+    void displayPeopleWorking(String timeDate);
+
+    /**
+     * displays a times min and max number of people who need to/can work a time.
+     * @param timeDate
+     */
+    void getMinAndMax(String timeDate);
+
     /*
     @param A string representing the time slot to return.
     @return A time slot object that corresponds to the single parameter
