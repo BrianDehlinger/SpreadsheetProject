@@ -1,40 +1,54 @@
 import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.UpdateValuesResponse;
+import com.google.api.services.sheets.v4.model.ValueRange;
+import java.io.IOException;
+
 import java.util.*;
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         Sheets sheet;
-        PersonMapHash peopleHash = new PersonMapHash(); // This is necessary to avoid infinite recursion utilizing the Comparator on the String key. It's worth the sacrirfice in space. HashMap is constant lookup time versus O(log n)
+        PersonMapHash peopleHash = new PersonMapHash(); // This is necessary to avoid infinite recursion utilizing the Comparator on the String key. It's worth the sacrifice in space. HashMap is constant lookup time versus O(log n)
         TheTimeMap schedule = new TheTimeMap();
         DataInterface theDataInterface = new DataInterface();
         theDataInterface.getDataFromSpreadsheet(peopleHash, schedule);
         ArrayList<String> timeToRemove = new ArrayList();
-        timeToRemove.add("1:00 WTC Mon");
-        schedule.deleteDayTimes(timeToRemove);
-        for (Map.Entry<String, Slot> entry : schedule.entrySet()){
-            System.out.println("Time " + entry.getKey());
-            System.out.println("People who are available to fill the time slot: " + entry.getValue().getPeopleAvailableNamems());
-        }
-        for (Map.Entry<String, Person> entry : peopleHash.entrySet()){
-            System.out.println("Person " + entry.getKey());
-            System.out.println("Time's person is available " + entry.getValue().getTimes());
+        final String inputValueOption = "RAW";
+        /*
 
-        }
-        Person john = new Person("John");
-        Slot timeSlot = new Slot();
-        timeSlot.addConflictMarker('D',1);
-        Person mike = new Person("Mike");
-        mike.addConflictMarker('D',1);
-        timeSlot.addPersonToPeopleAvailable(mike);
-        timeSlot.addPersonToPeopleAvailable(john);
-        timeSlot.removeAllConflictMarkerRelatedToSlotFromAll('D', 1);
-        System.out.println(timeSlot.checkForConflicts(john));
+        Scanner input = new Scanner(System.in);
+        System.out.println("Enter the ID of the spreadsheet to read from:");
+        theDataInterface.setReadSheetID(input.nextLine());
 
-        Rule newRule = new Rule(2, 3);
-        for (Map.Entry<String, Slot> entry : schedule.entrySet()){
-            newRule.applyTimeDayRuleToSlot(entry.getValue(), "Thu", "9:30");
-            System.out.println(entry.getValue().getDate() + " " + entry.getValue().getTime() + " : Min = " + entry.getValue().getMinimumRequired());
+        System.out.println("Enter the ID of the spreadsheet to write to:");
+        theDataInterface.setWriteSheetID(input.nextLine());
+        */
+
+        for (Map.Entry<String, Slot> entry : schedule.entrySet()) {
+            ArrayList<Person> guides = entry.getValue().getPeopleAvailable();
+            while(entry.getValue().getNumberOfPeopleWorking() < entry.getValue().getMax()){
+                Collections.sort(guides, new ComparePerson());
+                Person current = guides.get(0);
+                if(entry.getValue().getPeopleWorkingNames().contains(current)){
+                    guides.remove(current);
+                }
+                else{
+                    entry.getValue().addPersontoPeopleWorking(current);
+                    current.incrementNumberScheduled();
+                }
+            }
         }
 
+
+        for(Map.Entry<String, Slot> entry : schedule.entrySet()){
+            System.out.println(entry.getValue().getPeopleWorkingNames());
+        }
+
+        /*
+        final String range = "A1:E1";
+        Object [] v = new Object[] {"", "Wed", "Thu", "Fri", "Sat"};
+        final List<List<Object>> values = Arrays.asList(Arrays.asList(v));
+        theDataInterface.updateValues("1hRLbsjpvW20V1b_QytLXNQ7TqQshh7eHdbP5ZD5NrPw", range, inputValueOption, values);
+        */
     }
 }

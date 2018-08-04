@@ -62,8 +62,8 @@ public class Slot extends Conflictable {
     }
 
     public ArrayList<Person> getPeopleWorkingNames() {
-        ArrayList<Person> people = new ArrayList<>(peopleAvailable.size());
-        for (Person person : peopleAvailable) {
+        ArrayList<Person> people = new ArrayList<>(peopleWorking.size());
+        for (Person person : peopleWorking) {
             people.add(person);
         }
         return people;
@@ -84,7 +84,7 @@ public class Slot extends Conflictable {
     }
 
     public void addPersontoPeopleWorking(Person person) {
-        if (this.checkForConflicts(person) == true) {
+        if (this.checkForConflicts(person)) {
             System.out.println("Warning there is a conflict! Please address this before adding!");
         } else {
             peopleWorking.add(person);

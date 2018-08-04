@@ -1,27 +1,37 @@
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.BatchGetValuesResponse;
+import com.google.api.services.sheets.v4.model.*;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.*;
 import java.util.Arrays;
+import java.io.IOException;
+import java.util.Collections;
 
 /* This class will interface with Google SpreadSheets and read and write to spreadsheets.
    It might also be used to interface with a database in the future.
  */
 
-//TODO add spreadsheet ID as a parameter
 public class DataInterface {
     Sheets sheet;
     private int numberOfInputEntries; //WARNING SPREADSHEET must meet formatting to get an accurate number.
     private int numberOfDates; //WARNING: SPREADSHEET must meet formatting to get an accurate number.
     private int defaultMin = 5;
     private int defaultMax = 6;
+    private String readSheetID = "1UHWD0gPBFV-ab7qa3FQ0pDbSYTxsrFpmXZGp71xFQwQ";
+    private String writeSheetID = "1hRLbsjpvW20V1b_QytLXNQ7TqQshh7eHdbP5ZD5NrPw";
+
+
+
     public void getDataFromSpreadsheet(PersonMapHash peopleMap, TheTimeMap timeMap) {
         peopleMap.clear();
         timeMap.clear();
+
+
         try {
             sheet = SheetsServiceUtil.getSheetsService();
-            String SPREADSHEET_ID = "1BAvWAR78ghD7UAqESnxe8V5L6xtwazJ89hkhz3waQyM";
+            String SPREADSHEET_ID = readSheetID;
             List<String> ranges = Arrays.asList("Sheet1");
             Sheets.Spreadsheets.Values.BatchGet request = sheet.spreadsheets().values().batchGet(SPREADSHEET_ID);
             request.setRanges(ranges);
@@ -96,6 +106,23 @@ public class DataInterface {
             ex.printStackTrace();
         }
     }
+    public UpdateValuesResponse updateValues(String spreadsheetId, String range, String valueInputOption, List<List<Object>> _values) throws IOException {
+        // [START sheets_update_values]
+        List<List<Object>> values;
+        // [START_EXCLUDE silent]
+        values = _values;
+        // [END_EXCLUDE]
+        ValueRange body = new ValueRange()
+                .setValues(values);
+        UpdateValuesResponse result =
+                sheet.spreadsheets().values().update(spreadsheetId, range, body)
+                        .setValueInputOption(valueInputOption)
+                        .execute();
+        System.out.printf("%d cells updated.", result.getUpdatedCells());
+        // [END sheets_update_values]
+        return result;
+    }
+
     public int getDefaultMin(){
         return defaultMin;
     }
@@ -107,5 +134,18 @@ public class DataInterface {
     }
     public void setDefaultMax(int i){
         defaultMax = i;
+    }
+    public String getReadSheetID() {
+        return readSheetID;
+    }
+    public void setReadSheetID(String readSheetID) { //TODO add functionality for "unchanged read ID"
+        this.readSheetID = readSheetID;
+    }
+    public String getWriteSheetID() {
+        return writeSheetID;
+    }
+
+    public void setWriteSheetID(String writeSheetID) { //TODO add functionality for "unchanged write ID"
+        this.writeSheetID = writeSheetID;
     }
 }
