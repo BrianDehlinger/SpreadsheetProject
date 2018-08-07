@@ -1,4 +1,6 @@
-import com.google.api.services.sheets.v4.Sheets;
+import exception.PersonDuplicateException;
+import exception.TimeDateInvalidFormatException;
+import exception.TimeDateNotFoundException;
 
 import java.util.*;
 
@@ -52,11 +54,9 @@ public class TheTimeMap implements Schedule {
     public void displayPeopleAvailable(String timeDate) {
         Slot entry = timeSlotMap.get(timeDate);
         if (entry == null){
-            System.out.println("Time not found!");
-            return;
+            throw new TimeDateNotFoundException("Time Date not found!");
         }
         System.out.println("People who are available to fill the time slot: " + entry.getPeopleAvailableNamems());
-
     }
 
     /**
@@ -66,14 +66,12 @@ public class TheTimeMap implements Schedule {
      */
     @Override
     public void displayPeopleWorking(String timeDate) {
-
         Slot entry = timeSlotMap.get(timeDate);
         if (entry == null){
-            System.out.println("Time not found!");
-            return;
+            throw new TimeDateNotFoundException("Time date not found!");
         }
-        System.out.println("People who are available to fill the time slot: " + entry.getPeopleWorkingNames());
 
+        System.out.println("People who are available to fill the time slot: " + entry.getPeopleWorkingNames());
     }
 
     /**
@@ -83,16 +81,18 @@ public class TheTimeMap implements Schedule {
     @Override
     public void getMinAndMax(String timeDate) {
         Slot slotToCheck = timeSlotMap.get(timeDate);
-        if (slotToCheck == null) {
-            System.out.println("The slot was not found");
-            return;
+
+        if (slotToCheck == null){
+            throw new TimeDateNotFoundException("Time date not found!");
         }
+
         int minimum = slotToCheck.getMinimumRequired();
         int maximum = slotToCheck.getMax();
         //print min
         System.out.println("The minimum number of people who need to work at " + timeDate + " is " + minimum);
 
         System.out.println("The maximum number of people who can work  this time is " + maximum);
+
     }
 
     public Slot getTimeSlot(String key) {
@@ -159,30 +159,33 @@ public class TheTimeMap implements Schedule {
         }
     }
 
-    public boolean tryToAddPersonToAvailableWithMap(Person person, int min, int max, String timeDate, String time, String date, PersonMapHash mapToReadAndUpdate) {
-        if (timeDate.equals("")) {
-            return false;
+    public boolean tryToAddPersonToAvailableWithMap(Person person, int min, int max, String timeDate, String time, String date, PersonMapHash mapToReadAndUpdate) throws TimeDateInvalidFormatException {
+        if (timeDate == null || timeDate.equals("")) {
+            throw new TimeDateInvalidFormatException("Time Date is null or empty");
         }
-        if (person.getName().equals("")){
-            return false;
+        if (person == null || person.getName() == null ||  person.getName().equals("")){
+            throw new IllegalArgumentException("Person or Name of person is null or empty");
         }
+
         if (mapToReadAndUpdate.containsKey(person.getName())) {
             person = mapToReadAndUpdate.get(person.getName());
         }
         return eliminateDry(person, min, max, timeDate, time, date, mapToReadAndUpdate);
     }
+
     private boolean eliminateDry(Person person, int min, int max, String timeDate, String time, String date, PersonMapHash personMapHash){
-       this.putNewTimeSlotOnSchedule(timeDate, new Slot(min, max, date, time));
-        if ((person.getName() != null)){
-            personMapHash.put(person.getName(), person);
-            if (this.getTimeSlot(timeDate).containsInAvailable(person)) {
-                return false;
-            }
-            this.getTimeSlot(timeDate).addPersonToPeopleAvailable(person);
-            return true;
+
+        this.putNewTimeSlotOnSchedule(timeDate, new Slot(min, max, date, time));
+
+        personMapHash.put(person.getName(), person);
+        if (this.getTimeSlot(timeDate).containsInAvailable(person)) {
+
+            throw new PersonDuplicateException("The person existing in the time slot already");
+
         }
-        return false;
+        this.getTimeSlot(timeDate).addPersonToPeopleAvailable(person);
+
+        return true;
+
     }
-
-
 }
